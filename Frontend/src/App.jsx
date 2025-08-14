@@ -1,6 +1,10 @@
+import WalletButton from "./components/WalletButton";
+
 function App(){
   return(
-<div>hello</div>
+<div>
+  <WalletButton></WalletButton>
+</div>
   );
 }
 export default App;
