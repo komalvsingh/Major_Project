@@ -9,6 +9,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import Test from "./components/test";
 function App(){
   const router = createBrowserRouter([
     {
@@ -22,6 +23,10 @@ function App(){
     {
     path: "/apply",
     element: <Apply />,
+    },
+    {
+    path: "/test",
+    element: <Test/>,
     },
     {
     path: "/status",
@@ -42,9 +47,7 @@ function App(){
 
   ]);
   return(
-<div>
-  <WalletButton></WalletButton>
-</div>
+
     <div className="pt-16">
       <RouterProvider router={router} />
     </div>
