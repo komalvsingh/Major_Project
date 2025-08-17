@@ -1,56 +1,44 @@
+import { Routes, Route, Navigate } from "react-router-dom";
+import { useAuth } from './components/AuthContext.jsx';
+import Navbar from "./components/Navbar.jsx";
 import WalletButton from "./components/WalletButton";
 
-import Scholarships from "./pages/Scholarships";
-import Home from "./pages/Home";
-import Apply from "./pages/Apply";
-import Status from "./pages/Status";
-import Contact from "./pages/Contact";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
+import Scholarships from "./pages/Scholarships.jsx";
+import Home from "./pages/Home.jsx";
+import Apply from "./pages/Apply.jsx";
+import Status from "./pages/Status.jsx";
+import Contact from "./pages/Contact.jsx";
+import Login from "./pages/Login.jsx";
+import Register from "./pages/Register.jsx";
+import Test from "./components/test.jsx";
 
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import Test from "./components/test";
+
 function App(){
-  const router = createBrowserRouter([
-    {
-    path: "/",
-    element: <Home />,
-    },
-    {
-    path: "/scholarships",
-    element: <Scholarships />,
-    },
-    {
-    path: "/apply",
-    element: <Apply />,
-    },
-    {
-    path: "/test",
-    element: <Test/>,
-    },
-    {
-    path: "/status",
-    element: <Status />,
-    },
-    {
-    path: "/contact",
-    element: <Contact />,
-    },
-    {
-    path: "/login",
-    element: <Login />,
-    },
-    {
-    path: "/register",
-    element: <Register />,
-    },
+  const { currentUser, loading } = useAuth();
 
-  ]);
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <h1 className="text-3xl font-bold">Loading...</h1>
+      </div>
+    );
+  }
+  
   return(
-
     <div className="pt-16">
-      <RouterProvider router={router} />
+      <Navbar />
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/scholarships" element={<Scholarships />} />
+        <Route path="/apply" element={<Apply />} />
+        <Route path="/test" element={<Test/>} />
+        <Route path="/status" element={currentUser ? <Status /> : <Navigate to="/login" />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/login" element={currentUser ? <Navigate to="/" /> : <Login />} />
+        <Route path="/register" element={currentUser ? <Navigate to="/" /> : <Register />} />
+      </Routes>
     </div>
   );
 }
+
 export default App;

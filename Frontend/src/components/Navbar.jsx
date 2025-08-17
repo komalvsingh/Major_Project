@@ -1,8 +1,22 @@
-import { NavLink } from "react-router-dom"
+import { NavLink, useNavigate } from "react-router-dom"
+import { useAuth } from './AuthContext.jsx';
+import React from "react";
+
 export default function Navbar() {
+  const { currentUser, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/login');
+    } catch (error) {
+      console.error("Failed to log out:", error);
+    }
+  };
+  
   return(
     <div>
-
       {/* Header / Navbar */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-white/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -18,7 +32,7 @@ export default function Navbar() {
             {/* Navigation */}
             <nav className="hidden md:flex space-x-8">
               <NavLink 
-                to="/"  
+                to="/"  
                 className={({ isActive }) => 
                   isActive ? "text-blue-600 font-semibold" : "text-gray-700 hover:text-blue-600"
                 }
@@ -26,7 +40,7 @@ export default function Navbar() {
                 Home
               </NavLink>
               <NavLink 
-                to="/scholarships"  
+                to="/scholarships"  
                 className={({ isActive }) => 
                   isActive ? "text-blue-600 font-semibold" : "text-gray-700 hover:text-blue-600"
                 }
@@ -34,7 +48,7 @@ export default function Navbar() {
                 Scholarships
               </NavLink>
               <NavLink 
-                to="/apply"  
+                to="/apply"  
                 className={({ isActive }) => 
                   isActive ? "text-blue-600 font-semibold" : "text-gray-700 hover:text-blue-600"
                 }
@@ -42,7 +56,7 @@ export default function Navbar() {
                 Apply
               </NavLink>
               <NavLink 
-                to="/status"  
+                to="/status"  
                 className={({ isActive }) => 
                   isActive ? "text-blue-600 font-semibold" : "text-gray-700 hover:text-blue-600"
                 }
@@ -50,7 +64,7 @@ export default function Navbar() {
                 Status
               </NavLink>
               <NavLink 
-                to="/contact"  
+                to="/contact"  
                 className={({ isActive }) => 
                   isActive ? "text-blue-600 font-semibold" : "text-gray-700 hover:text-blue-600"
                 }
@@ -58,30 +72,40 @@ export default function Navbar() {
                 Contact
               </NavLink>
             </nav>
+
             <div className="flex items-center space-x-3">
-              <button className="text-gray-700 hover:text-blue-800 font-medium px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors">
-              <NavLink 
-                to="/login"  
-                className={({ isActive }) => 
-                  isActive ? "text-blue-600 font-semibold" : "text-gray-700 hover:text-blue-600"
-                }
-              >
-                Login
-              </NavLink>
-              </button>
-              <button className="bg-blue-800 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-900 transition-colors shadow-sm">
-              <NavLink 
-                to="/register"  
-              >
-                Register
-              </NavLink>
-              </button>
+              {currentUser ? (
+                <button 
+                  onClick={handleLogout}
+                  className="bg-red-500 text-white px-6 py-2 rounded-lg font-medium hover:bg-red-600 transition-colors shadow-sm"
+                >
+                  Logout
+                </button>
+              ) : (
+                <>
+                  <NavLink 
+                    to="/login"  
+                    className={({ isActive }) => 
+                      `text-gray-700 hover:text-blue-800 font-medium px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors ${isActive ? "text-blue-600 font-semibold" : ""}`
+                    }
+                  >
+                    Login
+                  </NavLink>
+                  <NavLink 
+                    to="/register"  
+                    className={({ isActive }) => 
+                      `bg-blue-800 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-900 transition-colors shadow-sm ${isActive ? "bg-blue-900" : ""}`
+                    }
+                  >
+                    Register
+                  </NavLink>
+                </>
+              )}
             </div>
 
           </div>
         </div>
       </header>
-      </div>
-      
+    </div>
   )
 }
