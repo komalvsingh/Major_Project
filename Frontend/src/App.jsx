@@ -9,7 +9,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import Test from "./components/test";
+
 function App(){
   const router = createBrowserRouter([
     {
@@ -23,10 +23,6 @@ function App(){
     {
     path: "/apply",
     element: <Apply />,
-    },
-    {
-    path: "/test",
-    element: <Test/>,
     },
     {
     path: "/status",
