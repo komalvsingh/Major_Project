@@ -26,7 +26,7 @@ export default function Navbar() {
               <div className="w-8 h-8 bg-blue-800 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-sm">🎓</span>
               </div>
-              <span className="font-heading font-bold text-xl text-gray-900"><NavLink to="/">SAG Bureau</NavLink></span>
+              <span className="font-heading font-bold text-xl text-gray-900"><NavLink to="/">FundSure</NavLink></span>
             </div>
 
             {/* Navigation */}

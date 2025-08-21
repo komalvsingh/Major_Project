@@ -12,6 +12,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import ScholarshipApplication from "./pages/Apply";
 
 function App(){
   const { currentUser, loading } = useAuth();
@@ -30,8 +31,8 @@ function App(){
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/scholarships" element={<Scholarships />} />
-        <Route path="/apply" element={<Apply />} />
-        <Route path="/test" element={<Test/>} />
+        <Route path="/apply" element={<ScholarshipApplication />} />
+        
         <Route path="/status" element={currentUser ? <Status /> : <Navigate to="/login" />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/login" element={currentUser ? <Navigate to="/" /> : <Login />} />
