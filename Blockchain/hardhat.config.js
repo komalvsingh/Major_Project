@@ -9,17 +9,14 @@ module.exports = {
         enabled: true,
         runs: 200,
       },
+      viaIR: true,  // This enables the IR-based compiler
     },
   },
-  defaultNetwork: "hardhat",
   networks: {
-    hardhat: {
-      chainId: 1337
-    },
-    amoy: {
-      url: process.env.ALCHEMY_AMOY_RPC,
-      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
-      chainId: 80002,
-    },
-  }
+    holesky: {
+      url: process.env.HOLESKY_RPC_URL,
+      accounts: [process.env.PRIVATE_KEY],
+      chainId: 17000,
+    }
+  },
 };
