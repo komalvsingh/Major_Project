@@ -68,32 +68,7 @@ export default function ListingSection(){
           </div>
         </div>
       </section>
-      {/* <section className="py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="font-heading font-bold text-3xl text-center mb-12 text-gray-900">Success Stories</h2>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            {[
-              { name: "Sarah Johnson", scholarship: "Academic Excellence Award", amount: "$10,000" },
-              { name: "Michael Chen", scholarship: "STEM Innovation Grant", amount: "$7,500" },
-              { name: "Emily Rodriguez", scholarship: "Community Leadership Fund", amount: "$5,000" },
-            ].map((testimonial, index) => (
-              <div key={index} className="bg-white p-6 rounded-xl shadow-md">
-                <div className="w-16 h-16 bg-gray-300 rounded-full mx-auto mb-4"></div>
-                <p className="font-body text-gray-600 text-center mb-4 italic">
-                  "This scholarship changed my life and made my dreams possible. The application process was smooth and
-                  supportive."
-                </p>
-                <div className="text-center">
-                  <h4 className="font-heading font-semibold text-lg">{testimonial.name}</h4>
-                  <p className="font-body text-blue-800 font-medium">{testimonial.scholarship}</p>
-                  <p className="font-body text-yellow-600 font-bold">{testimonial.amount}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section> */}
+      
       </div>
   )
 }
