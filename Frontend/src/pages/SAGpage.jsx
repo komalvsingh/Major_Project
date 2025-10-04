@@ -3,7 +3,7 @@ import { useWallet } from '../context/WalletContext';
 import contractArtifact from '../abis/ScholarshipContract.json';
 import { ethers } from 'ethers';
 
-const CONTRACT_ADDRESS = "0xCa9C04EA23B34Ec3c1B7Dc77A0323744211918F9";
+const CONTRACT_ADDRESS = "0x8Cc43D0c82Df65B6FF81A95F857917073f447BA5";
 
 const SAGVerifyPage = () => {
   const { account, provider, connectWallet } = useWallet();

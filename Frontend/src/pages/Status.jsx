@@ -15,8 +15,8 @@ export default function Status() {
   const [refreshing, setRefreshing] = useState(false);
 
   // Contract configuration
-  const CONTRACT_ADDRESS = "0xCa9C04EA23B34Ec3c1B7Dc77A0323744211918F9";
-  const HOLESKY_CHAIN_ID = 17000;
+  const CONTRACT_ADDRESS = "0x8Cc43D0c82Df65B6FF81A95F857917073f447BA5";
+  const HOLESKY_CHAIN_ID = 11155111;
 
   // Status mappings
   const statusLabels = {

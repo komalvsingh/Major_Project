@@ -32,9 +32,9 @@ const ScholarshipApplication = () => {
   const [uploadProgress, setUploadProgress] = useState(0);
 
   // Contract address and owner info - UPDATE THESE WITH YOUR NEW VALUES
-  const CONTRACT_ADDRESS = "0xCa9C04EA23B34Ec3c1B7Dc77A0323744211918F9"; // Your new Holesky address
+  const CONTRACT_ADDRESS = "0x8Cc43D0c82Df65B6FF81A95F857917073f447BA5"; // Your new Holesky address
   const CONTRACT_OWNER = "0x937dCeeAdBFD02D5453C7937E2217957D74E912d"; // Your owner address
-  const HOLESKY_CHAIN_ID = 17000;
+  const HOLESKY_CHAIN_ID = 11155111;
   
   // Check if current user is the contract owner
   const isOwner = account?.toLowerCase() === CONTRACT_OWNER.toLowerCase();
