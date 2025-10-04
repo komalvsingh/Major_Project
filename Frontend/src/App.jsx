@@ -15,6 +15,7 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import ScholarshipApplication from "./pages/Apply";
 import RoleAssignPage from "./pages/rolemanage.jsx";
 import SAGVerifyPage from "./pages/SAGpage.jsx";
+import AdminApprovePage from "./pages/AdminApprovePage.jsx";
 
 function App(){
   const { currentUser, loading } = useAuth();
@@ -36,6 +37,7 @@ function App(){
         <Route path="/apply" element={<ScholarshipApplication />} />
          <Route path="/sag" element={<SAGVerifyPage/>} />
          <Route path="/role" element={<RoleAssignPage />} />
+         <Route path="/admin" element={<AdminApprovePage/>} />
         <Route path="/status" element={currentUser ? <Status /> : <Navigate to="/login" />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/login" element={currentUser ? <Navigate to="/" /> : <Login />} />

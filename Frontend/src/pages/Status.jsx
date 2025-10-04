@@ -13,6 +13,8 @@ export default function Status() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(true);
+  const [lastUpdated, setLastUpdated] = useState(null);
 
   // Contract configuration
   const CONTRACT_ADDRESS = "0x8Cc43D0c82Df65B6FF81A95F857917073f447BA5";
@@ -95,11 +97,14 @@ export default function Status() {
   }, [isConnected, account]);
 
   // Fetch user applications
-  const fetchApplications = async () => {
+  const fetchApplications = async (showRefreshingIndicator = false) => {
     if (!contract || !account) return;
 
     try {
-      setRefreshing(true);
+      if (showRefreshingIndicator) {
+        setRefreshing(true);
+      }
+      
       console.log('Fetching applications for:', account);
       
       const userApps = await contract.getMyApplications();
@@ -124,27 +129,82 @@ export default function Status() {
       }));
 
       setApplications(formattedApps);
+      setLastUpdated(new Date());
       setError(null);
       
     } catch (err) {
       console.error('Error fetching applications:', err);
       setError('Failed to fetch applications');
     } finally {
-      setRefreshing(false);
+      if (showRefreshingIndicator) {
+        setRefreshing(false);
+      }
       setLoading(false);
     }
   };
 
-  // Fetch applications when contract is ready
+  // Fetch applications when contract is ready and set up listeners
   useEffect(() => {
-    if (contract) {
+    if (contract && account) {
+      // Initial fetch
       fetchApplications();
+      
+      // Set up event listeners for real-time updates
+      const setupListeners = async () => {
+        try {
+          console.log('Setting up event listeners...');
+          
+          // Listen for SAG verifications
+          contract.on("ApplicationSAGVerified", (applicationId, sagMember) => {
+            console.log('SAG verification event detected:', applicationId.toString());
+            fetchApplications();
+          });
+          
+          // Listen for admin approvals
+          contract.on("ApplicationAdminApproved", (applicationId, admin) => {
+            console.log('Admin approval event detected:', applicationId.toString());
+            fetchApplications();
+          });
+          
+          // Listen for disbursements
+          contract.on("FundsDisbursed", (applicationId, student, amount) => {
+            console.log('Funds disbursed event detected:', applicationId.toString());
+            fetchApplications();
+          });
+          
+          console.log('Event listeners set up successfully');
+        } catch (err) {
+          console.error('Error setting up listeners:', err);
+        }
+      };
+      
+      setupListeners();
+      
+      // Set up polling as backup (every 30 seconds)
+      let pollInterval = null;
+      if (autoRefreshEnabled) {
+        pollInterval = setInterval(() => {
+          console.log('Auto-refreshing applications...');
+          fetchApplications();
+        }, 30000); // 30 seconds
+      }
+      
+      // Cleanup listeners on unmount
+      return () => {
+        console.log('Cleaning up listeners...');
+        contract.removeAllListeners("ApplicationSAGVerified");
+        contract.removeAllListeners("ApplicationAdminApproved");
+        contract.removeAllListeners("FundsDisbursed");
+        if (pollInterval) {
+          clearInterval(pollInterval);
+        }
+      };
     }
-  }, [contract]);
+  }, [contract, account, autoRefreshEnabled]);
 
   // Manual refresh function
   const handleRefresh = () => {
-    fetchApplications();
+    fetchApplications(true);
   };
 
   // Format timestamp
@@ -157,6 +217,18 @@ export default function Status() {
       hour: '2-digit',
       minute: '2-digit'
     });
+  };
+
+  // Format last updated time
+  const formatLastUpdated = () => {
+    if (!lastUpdated) return '';
+    const now = new Date();
+    const diff = Math.floor((now - lastUpdated) / 1000);
+    
+    if (diff < 60) return 'Just now';
+    if (diff < 3600) return `${Math.floor(diff / 60)} min ago`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)} hours ago`;
+    return lastUpdated.toLocaleTimeString();
   };
 
   // Render loading state
@@ -213,19 +285,35 @@ export default function Status() {
                 <p className="text-sm text-gray-500 mt-1">
                   Connected: {account?.substring(0, 6)}...{account?.substring(38)}
                 </p>
-              </div>
-              <button
-                onClick={handleRefresh}
-                disabled={refreshing}
-                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
-              >
-                {refreshing ? (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                ) : (
-                  <span>🔄</span>
+                {lastUpdated && (
+                  <p className="text-xs text-gray-400 mt-1">
+                    Last updated: {formatLastUpdated()}
+                  </p>
                 )}
-                Refresh
-              </button>
+              </div>
+              <div className="flex flex-col gap-2 items-end">
+                <button
+                  onClick={handleRefresh}
+                  disabled={refreshing}
+                  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
+                >
+                  {refreshing ? (
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  ) : (
+                    <span>🔄</span>
+                  )}
+                  Refresh
+                </button>
+                <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={autoRefreshEnabled}
+                    onChange={(e) => setAutoRefreshEnabled(e.target.checked)}
+                    className="rounded"
+                  />
+                  Auto-refresh (30s)
+                </label>
+              </div>
             </div>
           </div>
 
@@ -390,7 +478,7 @@ export default function Status() {
                 <ul className="space-y-1 text-gray-600">
                   <li>• Applications are reviewed in order of submission</li>
                   <li>• Each stage requires different approvals</li>
-                  <li>• You will be notified of any status changes</li>
+                  <li>• Status updates automatically every 30 seconds</li>
                   <li>• Funds are automatically sent when approved</li>
                 </ul>
               </div>
