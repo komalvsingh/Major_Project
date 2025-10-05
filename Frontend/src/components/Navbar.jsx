@@ -40,7 +40,7 @@ export default function Navbar() {
                 Home
               </NavLink>
               <NavLink 
-                to="/scholarships"  
+                to="/list"  
                 className={({ isActive }) => 
                   isActive ? "text-blue-600 font-semibold" : "text-gray-700 hover:text-blue-600"
                 }
