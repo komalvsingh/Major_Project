@@ -18,6 +18,7 @@ import SAGVerifyPage from "./pages/SAGpage.jsx";
 import AdminApprovePage from "./pages/AdminApprovePage.jsx";
 import CreateScholarshipScheme from "./pages/ScholarshipScheme.jsx";
 import ScholarshipListing from "./pages/Scholarshiplisting.jsx";
+import FinanceDisbursement from "./pages/FinanceBureau.jsx";
 
 function App(){
   const { currentUser, loading } = useAuth();
@@ -40,6 +41,7 @@ function App(){
          <Route path="/sag" element={<SAGVerifyPage/>} />
          <Route path="/role" element={<RoleAssignPage />} />
          <Route path="/admin" element={<AdminApprovePage/>} />
+        <Route path="/finance" element={<FinanceDisbursement/>} />
          <Route path="/list" element={<ScholarshipListing/>} />
          <Route path="/scheme" element={<CreateScholarshipScheme/>} />
         <Route path="/status" element={currentUser ? <Status /> : <Navigate to="/login" />} />
