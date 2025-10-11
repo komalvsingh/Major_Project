@@ -3,7 +3,7 @@ import { useAuth } from './components/AuthContext.jsx';
 import Navbar from "./components/Navbar.jsx";
 import WalletButton from "./components/WalletButton";
 
-import Scholarships from "./pages/Scholarships";
+
 import Home from "./pages/Home";
 import Apply from "./pages/Apply";
 import Status from "./pages/Status";
@@ -36,7 +36,7 @@ function App(){
       <Navbar />
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/scholarships" element={<Scholarships />} />
+        
         <Route path="/apply" element={<ScholarshipApplication />} />
          <Route path="/sag" element={<SAGVerifyPage/>} />
          <Route path="/role" element={<RoleAssignPage />} />

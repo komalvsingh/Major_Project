@@ -108,10 +108,10 @@ const ScholarshipListing = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-[#F8F5FF] via-white to-[#E5D5FD]/30 flex items-center justify-center px-4">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading scholarships...</p>
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-[#E5D5FD] border-t-[#9360E3] mx-auto mb-4"></div>
+          <p className="text-gray-700 font-semibold text-lg">Loading scholarships...</p>
         </div>
       </div>
     );
@@ -119,13 +119,16 @@ const ScholarshipListing = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="bg-white p-8 rounded-lg shadow-md text-center">
-          <h1 className="text-2xl font-bold text-red-600 mb-4">Error</h1>
-          <p className="text-gray-600">{error}</p>
+      <div className="min-h-screen bg-gradient-to-br from-[#F8F5FF] via-white to-[#E5D5FD]/30 flex items-center justify-center px-4">
+        <div className="bg-white/80 backdrop-blur-sm p-10 rounded-2xl shadow-xl border border-red-200 text-center max-w-md">
+          <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+            <span className="text-3xl">⚠️</span>
+          </div>
+          <h1 className="text-3xl font-bold text-red-600 mb-4">Error</h1>
+          <p className="text-gray-600 mb-6">{error}</p>
           <button
             onClick={fetchSchemes}
-            className="mt-4 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+            className="bg-gradient-to-r from-[#9360E3] to-[#7a4dc4] text-white px-8 py-3 rounded-xl font-semibold hover:shadow-lg transition-all"
           >
             Retry
           </button>
@@ -135,23 +138,47 @@ const ScholarshipListing = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-6xl mx-auto px-4">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">
-            Available Scholarships
-          </h1>
-          <p className="text-gray-600">
-            Browse and apply for scholarship programs
-          </p>
+    <div className="min-h-screen bg-gradient-to-br from-[#F8F5FF] via-white to-[#E5D5FD]/30 py-12 px-4">
+      <div className="max-w-7xl mx-auto">
+        {/* Header Section */}
+        <div className="bg-gradient-to-r from-[#9360E3] to-[#7a4dc4] rounded-2xl shadow-xl p-8 mb-8 text-white">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-4xl font-bold mb-2">
+                Available Scholarships
+              </h1>
+              <p className="text-purple-100 text-lg">
+                Browse and apply for scholarship programs
+              </p>
+            </div>
+            <div className="hidden md:block">
+              <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center shadow-lg">
+                <span className="text-5xl">🎓</span>
+              </div>
+            </div>
+          </div>
+          <div className="mt-6 flex items-center space-x-4">
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg px-4 py-2">
+              <p className="text-sm text-purple-100">Total Schemes</p>
+              <p className="text-2xl font-bold">{schemes.length}</p>
+            </div>
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg px-4 py-2">
+              <p className="text-sm text-purple-100">Active Programs</p>
+              <p className="text-2xl font-bold">{schemes.filter(s => s.availableSlots > 0).length}</p>
+            </div>
+          </div>
         </div>
 
+        {/* Scholarships Grid */}
         {schemes.length === 0 ? (
-          <div className="bg-white p-8 rounded-lg shadow-md text-center">
-            <p className="text-gray-600 text-lg">
-              No active scholarship schemes available at the moment.
+          <div className="bg-white/80 backdrop-blur-sm p-12 rounded-2xl shadow-xl border border-[#E5D5FD] text-center">
+            <div className="w-24 h-24 bg-gradient-to-br from-[#9360E3]/20 to-[#7a4dc4]/20 rounded-full flex items-center justify-center mx-auto mb-6">
+              <span className="text-5xl">📚</span>
+            </div>
+            <p className="text-gray-700 text-xl font-semibold mb-2">
+              No active scholarship schemes available
             </p>
-            <p className="text-gray-500 text-sm mt-2">
+            <p className="text-gray-500">
               Please check back later for new opportunities.
             </p>
           </div>
@@ -160,90 +187,120 @@ const ScholarshipListing = () => {
             {schemes.map((scheme) => (
               <div
                 key={scheme.id}
-                className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
+                className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border-2 border-[#E5D5FD] p-6 hover:shadow-xl hover:border-[#9360E3] transition-all duration-300"
               >
-                <h2 className="text-xl font-bold text-gray-800 mb-3">
-                  {scheme.schemeName}
-                </h2>
+                {/* Header */}
+                <div className="mb-4">
+                  <h2 className="text-xl font-bold text-gray-800 mb-2">
+                    {scheme.schemeName}
+                  </h2>
+                  {scheme.description && (
+                    <p className="text-gray-600 text-sm line-clamp-2">
+                      {scheme.description}
+                    </p>
+                  )}
+                </div>
 
-                {scheme.description && (
-                  <p className="text-gray-600 text-sm mb-4 line-clamp-3">
-                    {scheme.description}
+                {/* Amount Badge */}
+                <div className="bg-gradient-to-r from-[#9360E3]/10 to-[#7a4dc4]/10 border border-[#9360E3]/20 rounded-xl p-4 mb-4">
+                  <p className="text-xs text-gray-600 mb-1">Scholarship Amount</p>
+                  <p className="text-2xl font-bold text-[#9360E3]">
+                    Ξ {scheme.scholarshipAmount}
                   </p>
-                )}
+                </div>
 
-                <div className="space-y-2 mb-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Amount:</span>
-                    <span className="text-lg font-semibold text-green-600">
-                      {scheme.scholarshipAmount} ETH
-                    </span>
+                {/* Stats Grid */}
+                <div className="grid grid-cols-2 gap-3 mb-4">
+                  <div className="bg-gray-50 rounded-lg p-3">
+                    <p className="text-xs text-gray-600 mb-1">Available Slots</p>
+                    <p className={`text-lg font-bold ${scheme.availableSlots > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {scheme.availableSlots}/{scheme.totalSlots}
+                    </p>
                   </div>
-
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Available Slots:</span>
-                    <span className={`font-semibold ${scheme.availableSlots > 0 ? 'text-blue-600' : 'text-red-600'}`}>
-                      {scheme.availableSlots} / {scheme.totalSlots}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Registered:</span>
-                    <span className="font-semibold text-gray-700">
-                      {scheme.registeredStudents || 0} students
-                    </span>
+                  <div className="bg-gray-50 rounded-lg p-3">
+                    <p className="text-xs text-gray-600 mb-1">Registered</p>
+                    <p className="text-lg font-bold text-gray-700">
+                      {scheme.registeredStudents || 0}
+                    </p>
                   </div>
                 </div>
 
+                {/* Eligibility */}
                 {scheme.eligibilityCriteria && (
-                  <div className="mb-4">
-                    <p className="text-xs font-semibold text-gray-700 mb-1">
-                      Eligibility:
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                    <p className="text-xs font-bold text-blue-900 mb-1 flex items-center">
+                      <span className="mr-1">✓</span> Eligibility
                     </p>
-                    <p className="text-xs text-gray-600 line-clamp-2">
+                    <p className="text-xs text-blue-700 line-clamp-2">
                       {scheme.eligibilityCriteria}
                     </p>
                   </div>
                 )}
 
+                {/* Duration */}
                 {scheme.startDate && scheme.endDate && (
-                  <div className="mb-4 text-xs text-gray-500">
-                    <p>Duration: {new Date(scheme.startDate).toLocaleDateString()} - {new Date(scheme.endDate).toLocaleDateString()}</p>
+                  <div className="bg-purple-50 border border-purple-200 rounded-lg p-3 mb-4">
+                    <p className="text-xs font-bold text-purple-900 mb-1 flex items-center">
+                      <span className="mr-1">📅</span> Duration
+                    </p>
+                    <p className="text-xs text-purple-700">
+                      {new Date(scheme.startDate).toLocaleDateString()} - {new Date(scheme.endDate).toLocaleDateString()}
+                    </p>
                   </div>
                 )}
 
+                {/* Required Documents */}
                 {scheme.requiredDocuments && (
-                  <div className="mb-4">
-                    <p className="text-xs font-semibold text-gray-700 mb-1">
-                      Required Documents:
+                  <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 mb-4">
+                    <p className="text-xs font-bold text-orange-900 mb-1 flex items-center">
+                      <span className="mr-1">📎</span> Required Documents
                     </p>
-                    <p className="text-xs text-gray-600">
+                    <p className="text-xs text-orange-700 line-clamp-2">
                       {scheme.requiredDocuments}
                     </p>
                   </div>
                 )}
 
+                {/* Register Button */}
                 <button
                   onClick={() => handleRegisterForScheme(scheme)}
                   disabled={registering === scheme.id || scheme.availableSlots <= 0}
-                  className={`w-full py-3 px-4 rounded-lg font-semibold transition-colors ${
+                  className={`w-full py-3 px-4 rounded-xl font-bold transition-all ${
                     scheme.availableSlots <= 0
                       ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                       : registering === scheme.id
-                      ? 'bg-blue-400 text-white cursor-wait'
-                      : 'bg-blue-600 text-white hover:bg-blue-700'
+                      ? 'bg-[#9360E3] text-white cursor-wait opacity-75'
+                      : 'bg-gradient-to-r from-[#9360E3] to-[#7a4dc4] text-white hover:shadow-lg hover:scale-[1.02]'
                   }`}
                 >
-                  {registering === scheme.id
-                    ? 'Registering...'
-                    : scheme.availableSlots <= 0
-                    ? 'No Slots Available'
-                    : 'Register & Apply'}
+                  {registering === scheme.id ? (
+                    <span className="flex items-center justify-center">
+                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Registering...
+                    </span>
+                  ) : scheme.availableSlots <= 0 ? (
+                    '❌ No Slots Available'
+                  ) : (
+                    '✓ Register & Apply'
+                  )}
                 </button>
               </div>
             ))}
           </div>
         )}
+
+        {/* Info Section */}
+        <div className="mt-8 bg-gradient-to-r from-[#9360E3]/10 to-[#7a4dc4]/10 border border-[#9360E3]/20 rounded-2xl p-6">
+          <p className="text-[#9360E3] font-semibold flex items-start">
+            <span className="text-2xl mr-3">💡</span>
+            <span className="text-sm pt-1">
+              <strong>How it works:</strong> Click "Register & Apply" to reserve your slot and proceed to the application form. Complete your application with all required documents to be considered for the scholarship.
+            </span>
+          </p>
+        </div>
       </div>
     </div>
   );
