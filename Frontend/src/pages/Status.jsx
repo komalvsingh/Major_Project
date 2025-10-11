@@ -29,10 +29,10 @@ export default function Status() {
   };
 
   const statusColors = {
-    0: "bg-yellow-100 text-yellow-800 border-yellow-200",
-    1: "bg-blue-100 text-blue-800 border-blue-200", 
-    2: "bg-green-100 text-green-800 border-green-200",
-    3: "bg-purple-100 text-purple-800 border-purple-200"
+    0: "bg-yellow-50 text-yellow-700 border-yellow-300",
+    1: "bg-blue-50 text-blue-700 border-blue-300", 
+    2: "bg-green-50 text-green-700 border-green-300",
+    3: "bg-purple-50 text-[#9360E3] border-purple-300"
   };
 
   // Check and switch to Holesky network
@@ -234,12 +234,15 @@ export default function Status() {
   // Render loading state
   if (loading) {
     return (
-      <div>
+      <div className="min-h-screen" style={{ background: 'linear-gradient(135deg, #E5D5FD 0%, #FEFEFE 100%)' }}>
         <Navbar />
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading applications...</p>
+        <div className="flex items-center justify-center pt-20">
+          <div className="text-center bg-white rounded-2xl shadow-xl p-12">
+            <div className="relative w-16 h-16 mx-auto mb-6">
+              <div className="absolute inset-0 rounded-full border-4 border-[#E5D5FD]"></div>
+              <div className="absolute inset-0 rounded-full border-4 border-[#9360E3] border-t-transparent animate-spin"></div>
+            </div>
+            <p className="text-gray-700 font-medium text-lg">Loading your applications...</p>
           </div>
         </div>
       </div>
@@ -249,18 +252,23 @@ export default function Status() {
   // Render error state
   if (error) {
     return (
-      <div>
+      <div className="min-h-screen" style={{ background: 'linear-gradient(135deg, #E5D5FD 0%, #FEFEFE 100%)' }}>
         <Navbar />
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <div className="bg-white p-8 rounded-lg shadow-md text-center max-w-md">
-            <div className="text-red-600 text-4xl mb-4">⚠️</div>
-            <h2 className="text-xl font-bold text-gray-800 mb-2">Error</h2>
-            <p className="text-gray-600 mb-4">{error}</p>
+        <div className="flex items-center justify-center pt-20">
+          <div className="bg-white p-10 rounded-2xl shadow-xl text-center max-w-md">
+            <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-red-50 flex items-center justify-center">
+              <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <h2 className="text-2xl font-bold text-gray-800 mb-3">Connection Error</h2>
+            <p className="text-gray-600 mb-6">{error}</p>
             <button
               onClick={() => window.location.reload()}
-              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+              className="px-6 py-3 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl"
+              style={{ background: 'linear-gradient(135deg, #9360E3 0%, #7B4BC7 100%)', color: '#FFFFFF' }}
             >
-              Retry
+              Retry Connection
             </button>
           </div>
         </div>
@@ -269,49 +277,72 @@ export default function Status() {
   }
 
   return (
-    <div>
+    <div className="min-h-screen" style={{ background: 'linear-gradient(135deg, #E5D5FD 0%, #FEFEFE 100%)' }}>
       <Navbar />
-      <div className="min-h-screen bg-gray-50 py-8">
-        <div className="max-w-6xl mx-auto px-4">
+      <div className="py-8 px-4">
+        <div className="max-w-7xl mx-auto">
           
-          {/* Header */}
-          <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-            <div className="flex justify-between items-center">
-              <div>
-                <h1 className="text-2xl font-bold text-gray-800">Application Status</h1>
-                <p className="text-gray-600 mt-1">
-                  Track your scholarship applications
-                </p>
-                <p className="text-sm text-gray-500 mt-1">
-                  Connected: {account?.substring(0, 6)}...{account?.substring(38)}
-                </p>
-                {lastUpdated && (
-                  <p className="text-xs text-gray-400 mt-1">
-                    Last updated: {formatLastUpdated()}
-                  </p>
-                )}
+          {/* Header Section */}
+          <div className="bg-white rounded-2xl shadow-xl p-8 mb-8" style={{ borderTop: '4px solid #9360E3' }}>
+            <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-6">
+              <div className="flex-1">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #9360E3 0%, #7B4BC7 100%)' }}>
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  </div>
+                  <h1 className="text-3xl font-bold text-gray-800">Application Status</h1>
+                </div>
+                <p className="text-gray-600 text-lg mb-3">Track and monitor your scholarship applications in real-time</p>
+                <div className="flex flex-wrap items-center gap-4 text-sm">
+                  <div className="flex items-center gap-2 px-4 py-2 rounded-lg" style={{ backgroundColor: '#E2D3FA' }}>
+                    <svg className="w-4 h-4" style={{ color: '#9360E3' }} fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                    </svg>
+                    <span className="font-medium text-gray-700">{account?.substring(0, 6)}...{account?.substring(38)}</span>
+                  </div>
+                  {lastUpdated && (
+                    <div className="flex items-center gap-2 text-gray-500">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span>Updated {formatLastUpdated()}</span>
+                    </div>
+                  )}
+                </div>
               </div>
-              <div className="flex flex-col gap-2 items-end">
+              
+              <div className="flex flex-col gap-3">
                 <button
                   onClick={handleRefresh}
                   disabled={refreshing}
-                  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
+                  className="px-6 py-3 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  style={{ background: refreshing ? '#E2D3FA' : 'linear-gradient(135deg, #9360E3 0%, #7B4BC7 100%)', color: refreshing ? '#9360E3' : '#FFFFFF' }}
                 >
                   {refreshing ? (
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <>
+                      <div className="w-5 h-5 rounded-full border-3 border-[#9360E3] border-t-transparent animate-spin"></div>
+                      <span>Refreshing...</span>
+                    </>
                   ) : (
-                    <span>🔄</span>
+                    <>
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                      </svg>
+                      <span>Refresh Status</span>
+                    </>
                   )}
-                  Refresh
                 </button>
-                <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+                
+                <label className="flex items-center gap-3 px-4 py-2 rounded-lg cursor-pointer transition-colors hover:bg-gray-50">
                   <input
                     type="checkbox"
                     checked={autoRefreshEnabled}
                     onChange={(e) => setAutoRefreshEnabled(e.target.checked)}
-                    className="rounded"
+                    className="w-5 h-5 rounded accent-[#9360E3]"
                   />
-                  Auto-refresh (30s)
+                  <span className="text-sm font-medium text-gray-700">Auto-refresh every 30s</span>
                 </label>
               </div>
             </div>
@@ -319,171 +350,248 @@ export default function Status() {
 
           {/* Applications List */}
           {applications.length === 0 ? (
-            <div className="bg-white rounded-lg shadow-md p-8 text-center">
-              <div className="text-gray-400 text-6xl mb-4">📄</div>
-              <h2 className="text-xl font-bold text-gray-800 mb-2">No Applications Found</h2>
-              <p className="text-gray-600">You haven't submitted any scholarship applications yet.</p>
+            <div className="bg-white rounded-2xl shadow-xl p-12 text-center">
+              <div className="w-24 h-24 mx-auto mb-6 rounded-full flex items-center justify-center" style={{ backgroundColor: '#E5D5FD' }}>
+                <svg className="w-12 h-12" style={{ color: '#9360E3' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </div>
+              <h2 className="text-2xl font-bold text-gray-800 mb-3">No Applications Yet</h2>
+              <p className="text-gray-600 text-lg mb-6">You haven't submitted any scholarship applications.</p>
+              <p className="text-gray-500">Submit your first application to start tracking your progress here.</p>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-6">
               {applications.map((app) => (
-                <div key={app.id} className="bg-white rounded-lg shadow-md p-6">
+                <div key={app.id} className="bg-white rounded-2xl shadow-xl overflow-hidden transition-all duration-300 hover:shadow-2xl">
                   
                   {/* Application Header */}
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-800">
-                        Application #{app.id}
-                      </h3>
-                      <p className="text-gray-600">{app.name}</p>
-                    </div>
-                    <div className="text-right">
-                      <span className={`px-3 py-1 rounded-full text-sm font-medium border ${statusColors[app.status]}`}>
-                        {statusLabels[app.status]}
-                      </span>
-                      <p className="text-xs text-gray-500 mt-1">
-                        Applied: {formatDate(app.appliedAt)}
-                      </p>
+                  <div className="p-6 border-b border-gray-100" style={{ background: 'linear-gradient(135deg, #FEFEFE 0%, #E5D5FD 100%)' }}>
+                    <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4">
+                      <div className="flex items-center gap-4">
+                        <div className="w-14 h-14 rounded-xl flex items-center justify-center font-bold text-xl text-white" style={{ background: 'linear-gradient(135deg, #9360E3 0%, #7B4BC7 100%)' }}>
+                          #{app.id}
+                        </div>
+                        <div>
+                          <h3 className="text-xl font-bold text-gray-800">{app.name}</h3>
+                          <p className="text-gray-600 text-sm mt-1">Application ID: {app.id}</p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex flex-col items-start lg:items-end gap-2">
+                        <span className={`px-5 py-2 rounded-full text-sm font-bold border-2 ${statusColors[app.status]}`}>
+                          {statusLabels[app.status]}
+                        </span>
+                        <p className="text-sm text-gray-500 flex items-center gap-2">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                          {formatDate(app.appliedAt)}
+                        </p>
+                      </div>
                     </div>
                   </div>
 
                   {/* Application Details */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-                    <div>
-                      <p className="text-sm font-medium text-gray-700">Email</p>
-                      <p className="text-sm text-gray-600">{app.email || 'N/A'}</p>
+                  <div className="p-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+                      <div className="p-4 rounded-xl" style={{ backgroundColor: '#FCFCFC', border: '1px solid #E5D5FD' }}>
+                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Email Address</p>
+                        <p className="text-sm font-medium text-gray-800 break-all">{app.email || 'N/A'}</p>
+                      </div>
+                      
+                      <div className="p-4 rounded-xl" style={{ backgroundColor: '#FCFCFC', border: '1px solid #E5D5FD' }}>
+                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Phone Number</p>
+                        <p className="text-sm font-medium text-gray-800">{app.phone || 'N/A'}</p>
+                      </div>
+                      
+                      <div className="p-4 rounded-xl" style={{ backgroundColor: '#FCFCFC', border: '1px solid #E5D5FD' }}>
+                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Aadhar Number</p>
+                        <p className="text-sm font-medium text-gray-800">{app.aadharNumber || 'N/A'}</p>
+                      </div>
+                      
+                      <div className="p-4 rounded-xl" style={{ backgroundColor: '#FCFCFC', border: '1px solid #E5D5FD' }}>
+                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Family Income</p>
+                        <p className="text-sm font-medium text-gray-800">{app.income || 'N/A'}</p>
+                      </div>
+                      
+                      <div className="p-4 rounded-xl" style={{ backgroundColor: '#E5D5FD', border: '1px solid #9360E3' }}>
+                        <p className="text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: '#9360E3' }}>Scholarship Amount</p>
+                        <p className="text-lg font-bold" style={{ color: '#9360E3' }}>{app.disbursementAmount} ETH</p>
+                      </div>
+                      
+                      <div className="p-4 rounded-xl" style={{ backgroundColor: '#FCFCFC', border: '1px solid #E5D5FD' }}>
+                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Documents</p>
+                        {app.documentsIPFSHash && app.documentsIPFSHash !== 'QmDefault' ? (
+                          <a 
+                            href={`https://gateway.pinata.cloud/ipfs/${app.documentsIPFSHash.split(',')[0]}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 text-sm font-semibold hover:underline transition-colors"
+                            style={{ color: '#9360E3' }}
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                            </svg>
+                            View Documents
+                          </a>
+                        ) : (
+                          <p className="text-sm text-gray-500">No documents uploaded</p>
+                        )}
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-700">Phone</p>
-                      <p className="text-sm text-gray-600">{app.phone || 'N/A'}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-700">Aadhar Number</p>
-                      <p className="text-sm text-gray-600">{app.aadharNumber || 'N/A'}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-700">Family Income</p>
-                      <p className="text-sm text-gray-600">{app.income || 'N/A'}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-700">Scholarship Amount</p>
-                      <p className="text-sm text-gray-600">{app.disbursementAmount} ETH</p>
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-700">Documents</p>
-                      {app.documentsIPFSHash && app.documentsIPFSHash !== 'QmDefault' ? (
-                        <a 
-                          href={`https://gateway.pinata.cloud/ipfs/${app.documentsIPFSHash.split(',')[0]}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-sm text-blue-600 hover:text-blue-800 underline"
-                        >
-                          View Documents
-                        </a>
-                      ) : (
-                        <p className="text-sm text-gray-600">No documents</p>
-                      )}
-                    </div>
-                  </div>
 
-                  {/* Progress Indicators */}
-                  <div className="border-t pt-4">
-                    <h4 className="text-sm font-medium text-gray-700 mb-3">Application Progress</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    {/* Progress Timeline */}
+                    <div className="p-6 rounded-xl mb-6" style={{ backgroundColor: '#FEFEFE', border: '2px solid #E5D5FD' }}>
+                      <h4 className="text-lg font-bold text-gray-800 mb-6 flex items-center gap-2">
+                        <svg className="w-5 h-5" style={{ color: '#9360E3' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        </svg>
+                        Application Progress
+                      </h4>
                       
-                      {/* Applied */}
-                      <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 rounded-full bg-green-500"></div>
-                        <span className="text-sm text-gray-600">Applied</span>
-                      </div>
-                      
-                      {/* SAG Verification */}
-                      <div className="flex items-center gap-2">
-                        <div className={`w-4 h-4 rounded-full ${app.status >= 1 ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-                        <span className="text-sm text-gray-600">
-                          SAG Verified ({app.sagVerifiedCount}/1)
-                        </span>
-                      </div>
-                      
-                      {/* Admin Approval */}
-                      <div className="flex items-center gap-2">
-                        <div className={`w-4 h-4 rounded-full ${app.status >= 2 ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-                        <span className="text-sm text-gray-600">
-                          Admin Approved ({app.adminApprovedCount}/2)
-                        </span>
-                      </div>
-                      
-                      {/* Disbursed */}
-                      <div className="flex items-center gap-2">
-                        <div className={`w-4 h-4 rounded-full ${app.status >= 3 ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-                        <span className="text-sm text-gray-600">
-                          {app.isDisbursed ? 'Disbursed ✅' : 'Pending Disbursement'}
-                        </span>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        
+                        {/* Applied */}
+                        <div className="flex items-center gap-3 p-4 rounded-xl transition-all" style={{ backgroundColor: app.status >= 0 ? '#E5D5FD' : '#F5F5F5' }}>
+                          <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: app.status >= 0 ? '#9360E3' : '#D1D5DB' }}>
+                            <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                          <div>
+                            <p className="font-semibold text-gray-800 text-sm">Applied</p>
+                            <p className="text-xs text-gray-600">Initial submission</p>
+                          </div>
+                        </div>
+                        
+                        {/* SAG Verification */}
+                        <div className="flex items-center gap-3 p-4 rounded-xl transition-all" style={{ backgroundColor: app.status >= 1 ? '#E5D5FD' : '#F5F5F5' }}>
+                          <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: app.status >= 1 ? '#9360E3' : '#D1D5DB' }}>
+                            {app.status >= 1 ? (
+                              <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                              </svg>
+                            ) : (
+                              <span className="text-white text-xs font-bold">{app.sagVerifiedCount}/1</span>
+                            )}
+                          </div>
+                          <div>
+                            <p className="font-semibold text-gray-800 text-sm">SAG Verified</p>
+                            <p className="text-xs text-gray-600">{app.sagVerifiedCount}/1 verified</p>
+                          </div>
+                        </div>
+                        
+                        {/* Admin Approval */}
+                        <div className="flex items-center gap-3 p-4 rounded-xl transition-all" style={{ backgroundColor: app.status >= 2 ? '#E5D5FD' : '#F5F5F5' }}>
+                          <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: app.status >= 2 ? '#9360E3' : '#D1D5DB' }}>
+                            {app.status >= 2 ? (
+                              <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                              </svg>
+                            ) : (
+                              <span className="text-white text-xs font-bold">{app.adminApprovedCount}/2</span>
+                            )}
+                          </div>
+                          <div>
+                            <p className="font-semibold text-gray-800 text-sm">Admin Approved</p>
+                            <p className="text-xs text-gray-600">{app.adminApprovedCount}/2 approved</p>
+                          </div>
+                        </div>
+                        
+                        {/* Disbursed */}
+                        <div className="flex items-center gap-3 p-4 rounded-xl transition-all" style={{ backgroundColor: app.status >= 3 ? '#E5D5FD' : '#F5F5F5' }}>
+                          <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: app.status >= 3 ? '#9360E3' : '#D1D5DB' }}>
+                            {app.isDisbursed ? (
+                              <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                              </svg>
+                            ) : (
+                              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                            )}
+                          </div>
+                          <div>
+                            <p className="font-semibold text-gray-800 text-sm">{app.isDisbursed ? 'Disbursed' : 'Pending'}</p>
+                            <p className="text-xs text-gray-600">{app.isDisbursed ? 'Funds sent' : 'Awaiting payment'}</p>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Status-specific Information */}
-                  {app.status === 0 && (
-                    <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded">
-                      <p className="text-sm text-yellow-800">
-                        ⏳ Your application is under review by SAG Bureau members.
-                      </p>
-                    </div>
-                  )}
-                  
-                  {app.status === 1 && (
-                    <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded">
-                      <p className="text-sm text-blue-800">
-                        ✅ SAG verification complete. Waiting for admin approval (needs {2 - app.adminApprovedCount} more approval{2 - app.adminApprovedCount !== 1 ? 's' : ''}).
-                      </p>
-                    </div>
-                  )}
-                  
-                  {app.status === 2 && (
-                    <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded">
-                      <p className="text-sm text-green-800">
-                        🎉 Admin approval complete! Waiting for finance bureau to disburse funds.
-                      </p>
-                    </div>
-                  )}
-                  
-                  {app.status === 3 && (
-                    <div className="mt-4 p-3 bg-purple-50 border border-purple-200 rounded">
-                      <p className="text-sm text-purple-800">
-                        💰 Congratulations! Your scholarship of {app.disbursementAmount} ETH has been disbursed.
-                      </p>
-                    </div>
-                  )}
+                    {/* Status-specific Information */}
+                    {app.status === 0 && (
+                      <div className="p-5 rounded-xl border-2 border-yellow-200" style={{ backgroundColor: '#FEF9E7' }}>
+                        <div className="flex items-start gap-3">
+                          <div className="w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center flex-shrink-0">
+                            <svg className="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                          </div>
+                          <div>
+                            <p className="font-semibold text-yellow-800 mb-1">Under Review</p>
+                            <p className="text-sm text-yellow-700">Your application is currently being reviewed by SAG Bureau members. This process typically takes 2-3 business days.</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {app.status === 1 && (
+                      <div className="p-5 rounded-xl border-2 border-blue-200" style={{ backgroundColor: '#EBF5FF' }}>
+                        <div className="flex items-start gap-3">
+                          <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                            <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                          <div>
+                            <p className="font-semibold text-blue-800 mb-1">SAG Verification Complete</p>
+                            <p className="text-sm text-blue-700">Great news! Your application has been verified. Now waiting for admin approval (needs {2 - app.adminApprovedCount} more approval{2 - app.adminApprovedCount !== 1 ? 's' : ''}).</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {app.status === 2 && (
+                      <div className="p-5 rounded-xl border-2 border-green-200" style={{ backgroundColor: '#F0FDF4' }}>
+                        <div className="flex items-start gap-3">
+                          <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                            <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                          <div>
+                            <p className="font-semibold text-green-800 mb-1">Admin Approval Complete!</p>
+                            <p className="text-sm text-green-700">Congratulations! Your application has been fully approved. The finance bureau will disburse the funds shortly.</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {app.status === 3 && (
+                      <div className="p-5 rounded-xl border-2" style={{ backgroundColor: '#F5EFFF', borderColor: '#9360E3' }}>
+                        <div className="flex items-start gap-3">
+                          <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#E5D5FD' }}>
+                            <svg className="w-5 h-5" style={{ color: '#9360E3' }} fill="currentColor" viewBox="0 0 20 20">
+                              <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                          <div>
+                            <p className="font-semibold mb-1" style={{ color: '#9360E3' }}>Funds Disbursed Successfully!</p>
+                            <p className="text-sm text-gray-700">Congratulations! Your scholarship amount of <span className="font-bold" style={{ color: '#9360E3' }}>{app.disbursementAmount} ETH</span> has been successfully transferred to your wallet.</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
           )}
 
-          {/* Help Section */}
-          <div className="mt-8 bg-white rounded-lg shadow-md p-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-3">Understanding Application Status</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-              <div>
-                <h4 className="font-medium text-gray-700 mb-2">Status Meanings:</h4>
-                <ul className="space-y-1 text-gray-600">
-                  <li>• <strong>Applied:</strong> Initial application submitted</li>
-                  <li>• <strong>SAG Verified:</strong> Verified by SAG Bureau (1 verification needed)</li>
-                  <li>• <strong>Admin Approved:</strong> Approved by admins (2 approvals needed)</li>
-                  <li>• <strong>Disbursed:</strong> Scholarship amount sent to your wallet</li>
-                </ul>
-              </div>
-              <div>
-                <h4 className="font-medium text-gray-700 mb-2">What happens next?</h4>
-                <ul className="space-y-1 text-gray-600">
-                  <li>• Applications are reviewed in order of submission</li>
-                  <li>• Each stage requires different approvals</li>
-                  <li>• Status updates automatically every 30 seconds</li>
-                  <li>• Funds are automatically sent when approved</li>
-                </ul>
-              </div>
-            </div>
-          </div>
+
 
         </div>
       </div>
