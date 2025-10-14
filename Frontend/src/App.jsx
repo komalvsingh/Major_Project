@@ -2,7 +2,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from './components/AuthContext.jsx';
 import Navbar from "./components/Navbar.jsx";
 import WalletButton from "./components/WalletButton";
-
+import ScholarshipChatbot from "./components/ScholarshipChatbot.jsx"; // Import chatbot
 
 import Home from "./pages/Home";
 import Apply from "./pages/Apply";
@@ -49,6 +49,9 @@ function App(){
         <Route path="/login" element={currentUser ? <Navigate to="/" /> : <Login />} />
         <Route path="/register" element={currentUser ? <Navigate to="/" /> : <Register />} />
       </Routes>
+
+      {/* Global Chatbot - Visible on all pages */}
+      <ScholarshipChatbot />
     </div>
   );
 }
