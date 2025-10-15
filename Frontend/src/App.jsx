@@ -19,6 +19,7 @@ import AdminApprovePage from "./pages/AdminApprovePage.jsx";
 import CreateScholarshipScheme from "./pages/ScholarshipScheme.jsx";
 import ScholarshipListing from "./pages/Scholarshiplisting.jsx";
 import FinanceDisbursement from "./pages/FinanceBureau.jsx";
+import DocumentVerificationUI from "./components/DocVerify.jsx";
 
 function App(){
   const { currentUser, loading } = useAuth();
@@ -46,6 +47,7 @@ function App(){
          <Route path="/scheme" element={<CreateScholarshipScheme/>} />
         <Route path="/status" element={currentUser ? <Status /> : <Navigate to="/login" />} />
         <Route path="/contact" element={<Contact />} />
+        <Route path="/verify" element={<DocumentVerificationUI/>} />
         <Route path="/login" element={currentUser ? <Navigate to="/" /> : <Login />} />
         <Route path="/register" element={currentUser ? <Navigate to="/" /> : <Register />} />
       </Routes>
