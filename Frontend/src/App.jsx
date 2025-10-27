@@ -7,7 +7,7 @@ import ScholarshipChatbot from "./components/ScholarshipChatbot.jsx"; // Import 
 import Home from "./pages/Home";
 import Apply from "./pages/Apply";
 import Status from "./pages/Status";
-import Contact from "./pages/Contact";
+import Contact from "./pages/adminstatus.jsx";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 
@@ -21,6 +21,8 @@ import ScholarshipListing from "./pages/Scholarshiplisting.jsx";
 import FinanceDisbursement from "./pages/FinanceBureau.jsx";
 
 import SimpleDocVerification from "./components/DocVerify.jsx";
+import DocumentVerificationUI from "./components/DocVerify.jsx";
+import AdminDashboard from "./pages/adminstatus.jsx";
 
 function App(){
   const { currentUser, loading } = useAuth();
@@ -47,8 +49,10 @@ function App(){
          <Route path="/list" element={<ScholarshipListing/>} />
          <Route path="/scheme" element={<CreateScholarshipScheme/>} />
         <Route path="/status" element={currentUser ? <Status /> : <Navigate to="/login" />} />
-        <Route path="/contact" element={<Contact />} />
+        <Route path="/contact" element={<AdminDashboard/>} />
         <Route path="/verify" element={<SimpleDocVerification/>} />
+        <Route path="/check" element={<DocumentVerificationUI/>} />
+        
         <Route path="/login" element={currentUser ? <Navigate to="/" /> : <Login />} />
         <Route path="/register" element={currentUser ? <Navigate to="/" /> : <Register />} />
       </Routes>

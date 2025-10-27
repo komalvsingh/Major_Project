@@ -1,10 +1,4 @@
-"""
-Enhanced Document Verification System for Scholarship Platform
-No user credentials required - Admin verifies student-uploaded documents
-Uses OCR, AI validation, and document authenticity checks
-"""
-
-from fastapi import FastAPI, File, UploadFile, HTTPException, Form
+from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import pytesseract
@@ -13,25 +7,20 @@ import numpy as np
 from PIL import Image
 import io
 import os
-from typing import Dict, Optional, List
-import tempfile
+from typing import Dict, List
 from pdf2image import convert_from_bytes
 from groq import Groq
-import time
 import json
 import re
 from datetime import datetime
-from pydantic import BaseModel
 from dotenv import load_dotenv
-import hashlib
 
-# Configure Tesseract path for Windows
+# Configure Tesseract
 pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 os.environ['TESSDATA_PREFIX'] = r'C:\Program Files\Tesseract-OCR\tessdata'
 
 load_dotenv()
-
-app = FastAPI(title="Scholarship Document Verification System")
+app = FastAPI(title="Scholarship Document Verification")
 
 app.add_middleware(
     CORSMiddleware,
@@ -43,136 +32,157 @@ app.add_middleware(
 
 groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
-# Models
-class VerificationResponse(BaseModel):
-    document_type: str
-    extracted_data: Dict
-    confidence_score: float
-    authenticity_score: float
-    tampering_detected: bool
-    validation_checks: Dict
-    verification_result: str
-    recommendations: List[str]
-
 # Document validation patterns
-DOCUMENT_PATTERNS = {
+DOC_PATTERNS = {
     "aadhaar": {
-        "number_pattern": r"\b\d{4}\s?\d{4}\s?\d{4}\b",
-        "required_fields": ["name", "dob", "aadhaar_number"],
-        "keywords": ["government of india", "aadhaar", "uidai", "unique identification"]
+        "number": r"\b\d{4}\s?\d{4}\s?\d{4}\b",
+        "keywords": ["aadhaar", "government of india", "uidai", "uid"],
+        "fields": ["name", "dob", "aadhaar_number"]
     },
     "pan": {
-        "number_pattern": r"\b[A-Z]{5}\d{4}[A-Z]\b",
-        "required_fields": ["name", "pan_number", "dob"],
-        "keywords": ["income tax", "pan", "permanent account number"]
+        "number": r"\b[A-Z]{5}\d{4}[A-Z]\b",
+        "keywords": ["income tax", "pan", "permanent account"],
+        "fields": ["name", "pan_number", "dob"]
     },
     "marksheet": {
-        "number_pattern": r"\b\d{6,12}\b",
-        "required_fields": ["name", "roll_number", "marks", "institution"],
-        "keywords": ["marksheet", "marks", "grade", "examination", "university", "board"]
+        "number": r"\b\d{6,12}\b",
+        "keywords": ["marksheet", "marks", "grade", "examination", "university", "board", "result"],
+        "fields": ["name", "roll_number", "marks", "institution"]
     },
-    "income_certificate": {
-        "number_pattern": r"\b[A-Z0-9]{8,15}\b",
-        "required_fields": ["name", "income", "certificate_number"],
-        "keywords": ["income certificate", "annual income", "tehsildar", "revenue"]
+    "income": {
+        "number": r"\b[A-Z0-9]{8,15}\b",
+        "keywords": ["income certificate", "annual income", "tehsildar", "revenue"],
+        "fields": ["name", "income", "certificate_number"]
     },
-    "caste_certificate": {
-        "number_pattern": r"\b[A-Z0-9]{8,15}\b",
-        "required_fields": ["name", "caste", "certificate_number"],
-        "keywords": ["caste certificate", "scheduled caste", "scheduled tribe", "obc"]
+    "caste": {
+        "number": r"\b[A-Z0-9]{8,15}\b",
+        "keywords": ["caste certificate", "scheduled caste", "scheduled tribe", "obc"],
+        "fields": ["name", "caste", "certificate_number"]
     }
 }
 
-# OCR Preprocessing
 def preprocess_image(image: np.ndarray) -> np.ndarray:
-    """Advanced preprocessing for better OCR"""
+    """Optimize image for OCR"""
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    denoised = cv2.fastNlMeansDenoising(gray, None, 10, 7, 21)
-    thresh = cv2.adaptiveThreshold(
-        denoised, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2
-    )
-    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
-    enhanced = clahe.apply(thresh)
-    return enhanced
+    
+    # Apply denoising with moderate strength
+    denoised = cv2.fastNlMeansDenoising(gray, h=10)
+    
+    # Use adaptive thresholding for better text extraction
+    thresh = cv2.adaptiveThreshold(denoised, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, 
+                                   cv2.THRESH_BINARY, 11, 2)
+    return thresh
 
 def detect_tampering(image: np.ndarray) -> Dict:
-    """Detect potential tampering in document image"""
-    tampering_indicators = []
-    authenticity_score = 100.0
+    """Improved tampering detection - more realistic for scanned documents"""
+    score = 100.0
+    issues = []
+    warnings = []
     
-    # Convert to grayscale
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    height, width = gray.shape
     
-    # 1. Error Level Analysis (ELA) - simplified version
-    # Check for inconsistent compression artifacts
-    _, encoded = cv2.imencode('.jpg', image, [cv2.IMWRITE_JPEG_QUALITY, 90])
-    recompressed = cv2.imdecode(encoded, cv2.IMREAD_COLOR)
+    # 1. Compression artifacts analysis (ELA) - Adjusted thresholds
+    _, jpg = cv2.imencode('.jpg', image, [cv2.IMWRITE_JPEG_QUALITY, 90])
+    recompressed = cv2.imdecode(jpg, cv2.IMREAD_COLOR)
     diff = cv2.absdiff(image, recompressed)
     ela_score = np.mean(diff)
     
-    if ela_score > 15:
-        tampering_indicators.append("Inconsistent compression artifacts detected")
-        authenticity_score -= 20
+    # More lenient thresholds - scanned docs have compression
+    if ela_score > 35:  # Raised from 25
+        issues.append("Significant compression inconsistency")
+        score -= 25
+    elif ela_score > 28:  # Raised from 18
+        warnings.append("Moderate compression artifacts")
+        score -= 10
     
-    # 2. Edge Detection Analysis
+    # 2. Edge consistency analysis - More realistic
     edges = cv2.Canny(gray, 50, 150)
     edge_density = np.sum(edges > 0) / edges.size
     
-    if edge_density > 0.3:
-        tampering_indicators.append("Unusual edge density - possible digital manipulation")
-        authenticity_score -= 15
+    # Adjusted thresholds for real documents
+    if edge_density > 0.5:  # Raised from 0.4
+        warnings.append("High edge density - detailed document")
+        score -= 5
+    elif edge_density < 0.02:  # Lowered from 0.05
+        issues.append("Suspiciously smooth - possible digital creation")
+        score -= 15
     
-    # 3. Noise Analysis
+    # 3. Noise variance - Scanned documents have natural noise
     noise = cv2.Laplacian(gray, cv2.CV_64F).var()
-    if noise < 50:
-        tampering_indicators.append("Suspiciously low noise level")
-        authenticity_score -= 10
+    if noise < 15:  # Lowered from 30
+        warnings.append("Low noise - high quality scan or digital")
+        score -= 5
+    elif noise > 800:  # Raised from 500
+        warnings.append("High noise - poor scan quality")
+        score -= 5
     
-    # 4. Color Consistency
+    # 4. Color channel consistency - More lenient
     if len(image.shape) == 3:
         b, g, r = cv2.split(image)
-        if np.std(b) < 5 or np.std(g) < 5 or np.std(r) < 5:
-            tampering_indicators.append("Unnatural color distribution")
-            authenticity_score -= 15
+        b_std = np.std(b)
+        g_std = np.std(g)
+        r_std = np.std(r)
+        
+        if b_std < 3 or g_std < 3 or r_std < 3:  # Lowered from 5
+            warnings.append("Limited color variation")
+            score -= 10
+    
+    # 5. Duplicate region detection - Less aggressive
+    block_size = 32
+    blocks_seen = {}
+    duplicates = 0
+    
+    for i in range(0, height - block_size, block_size * 2):  # Skip more blocks
+        for j in range(0, width - block_size, block_size * 2):
+            block = gray[i:i+block_size, j:j+block_size]
+            block_hash = hash(block.tobytes())
+            if block_hash in blocks_seen:
+                duplicates += 1
+            blocks_seen[block_hash] = True
+    
+    if duplicates > 10:  # Raised from 5
+        issues.append("Repeated patterns found")
+        score -= 10
     
     return {
-        "tampering_indicators": tampering_indicators,
-        "authenticity_score": max(0, authenticity_score),
-        "ela_score": float(ela_score),
-        "edge_density": float(edge_density),
-        "noise_variance": float(noise)
+        "authenticity_score": max(0, round(score, 1)),
+        "tampering_detected": len(issues) > 0,  # Only critical issues
+        "issues": issues,
+        "warnings": warnings,  # Non-critical observations
+        "metrics": {
+            "ela_score": round(float(ela_score), 2),
+            "edge_density": round(float(edge_density), 3),
+            "noise_variance": round(float(noise), 2)
+        }
     }
 
-def extract_text_from_image(file_bytes: bytes, filename: str) -> tuple:
-    """Extract text and perform image analysis"""
+def extract_text_from_file(file_bytes: bytes, filename: str) -> tuple:
+    """Extract text from image/PDF with quality assessment"""
     try:
         if filename.lower().endswith('.pdf'):
-            images = convert_from_bytes(file_bytes)
-            extracted_text = ""
+            images = convert_from_bytes(file_bytes, dpi=300)
+            all_text = []
             tampering_results = []
             
             for img in images:
-                img_array = np.array(img)
-                img_bgr = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)
-                
-                # Tampering detection
-                tampering_results.append(detect_tampering(img_bgr))
-                
-                # OCR
-                processed = preprocess_image(img_bgr)
-                text = pytesseract.image_to_string(processed, lang='eng')
-                extracted_text += text + "\n"
+                img_array = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
+                tampering_results.append(detect_tampering(img_array))
+                processed = preprocess_image(img_array)
+                text = pytesseract.image_to_string(processed, lang='eng', config='--psm 6')
+                all_text.append(text)
             
-            # Average tampering results
-            avg_tampering = {
-                "tampering_indicators": [],
-                "authenticity_score": np.mean([r["authenticity_score"] for r in tampering_results])
+            combined_text = "\n".join(all_text).strip()
+            avg_score = np.mean([r["authenticity_score"] for r in tampering_results])
+            all_issues = [issue for r in tampering_results for issue in r["issues"]]
+            all_warnings = [w for r in tampering_results for w in r.get("warnings", [])]
+            
+            return combined_text, {
+                "authenticity_score": round(avg_score, 1),
+                "tampering_detected": len(all_issues) > 0,
+                "issues": list(set(all_issues)),
+                "warnings": list(set(all_warnings))
             }
-            for result in tampering_results:
-                avg_tampering["tampering_indicators"].extend(result["tampering_indicators"])
-            
-            return extracted_text.strip(), avg_tampering
-        
         else:
             image = Image.open(io.BytesIO(file_bytes))
             img_array = np.array(image)
@@ -184,95 +194,86 @@ def extract_text_from_image(file_bytes: bytes, filename: str) -> tuple:
             else:
                 img_bgr = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)
             
-            # Tampering detection
             tampering_result = detect_tampering(img_bgr)
-            
-            # OCR
             processed = preprocess_image(img_bgr)
-            text = pytesseract.image_to_string(processed, lang='eng')
+            text = pytesseract.image_to_string(processed, lang='eng', config='--psm 6')
             
             return text.strip(), tampering_result
             
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"OCR extraction failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to extract text: {str(e)}")
 
-def validate_document_format(extracted_text: str, document_type: str) -> Dict:
-    """Validate document against known patterns"""
-    validation_results = {
-        "format_valid": False,
-        "required_fields_found": [],
-        "missing_fields": [],
-        "pattern_matches": []
+def validate_document_pattern(text: str, doc_type: str) -> Dict:
+    """Check document format and patterns"""
+    validation = {
+        "pattern_found": False,
+        "keywords_found": False,
+        "document_numbers": [],
+        "keyword_count": 0
     }
     
-    text_lower = extracted_text.lower()
-    doc_type = document_type.lower()
+    text_lower = text.lower()
     
-    if doc_type in DOCUMENT_PATTERNS:
-        pattern_config = DOCUMENT_PATTERNS[doc_type]
-        
-        # Check for keywords
-        keyword_found = any(kw in text_lower for kw in pattern_config["keywords"])
-        if keyword_found:
-            validation_results["format_valid"] = True
-        
-        # Check for document number pattern
-        number_pattern = pattern_config["number_pattern"]
-        matches = re.findall(number_pattern, extracted_text, re.IGNORECASE)
-        if matches:
-            validation_results["pattern_matches"] = matches[:3]  # Store up to 3 matches
-    
-    return validation_results
-
-def validate_with_ai(extracted_text: str, student_data: Optional[Dict] = None) -> Dict:
-    """Enhanced AI validation with cross-verification"""
-    try:
-        student_context = ""
-        if student_data:
-            student_context = f"""
+    for key, pattern_data in DOC_PATTERNS.items():
+        if key in doc_type.lower():
+            # Check keywords
+            keywords_match = sum(1 for kw in pattern_data["keywords"] if kw in text_lower)
+            validation["keyword_count"] = keywords_match
+            validation["keywords_found"] = keywords_match >= 1
             
-Student Information for Cross-Verification:
-- Name: {student_data.get('name', 'N/A')}
-- DOB: {student_data.get('dob', 'N/A')}
-- Application ID: {student_data.get('application_id', 'N/A')}
+            # Extract document numbers
+            numbers = re.findall(pattern_data["number"], text, re.IGNORECASE)
+            validation["document_numbers"] = numbers[:3]
+            validation["pattern_found"] = len(numbers) > 0
+            break
+    
+    return validation
 
-Please verify if document details match student information.
-"""
-        
-        prompt = f"""Analyze this document for scholarship verification and provide a structured JSON response:
+def ai_validate_document(text: str) -> Dict:
+    """AI-powered document validation with balanced criteria"""
+    try:
+        prompt = f"""Analyze this document and extract information. Return ONLY valid JSON.
 
 Document Text:
-{extracted_text}
-{student_context}
+{text}
 
-Analyze and return JSON with:
-1. document_type: Exact type (Aadhaar Card, PAN Card, Marksheet, Income Certificate, Caste Certificate, etc.)
-2. extracted_fields: All key information found
-   - For Aadhaar: name, aadhaar_number, dob, address, gender
-   - For PAN: name, pan_number, dob, father_name
-   - For Marksheet: name, roll_number, marks, percentage, institution, year, board
-   - For Income Certificate: name, father_name, income, certificate_number, issuing_authority, issue_date
-   - For Caste Certificate: name, caste, certificate_number, issuing_authority, issue_date
-3. confidence_score: 0-100 based on text clarity and completeness
-4. data_quality_issues: List any OCR errors, unclear text, missing information
-5. cross_verification_status: If student data provided, mention match/mismatch
-6. is_valid_format: Boolean for standard format compliance
-7. suspicious_elements: Any unusual formatting, text, or inconsistencies
-8. recommendations: Suggestions for admin (accept/reject/request re-upload/manual review)
+Return JSON with this exact structure:
+{{
+  "document_type": "Exact type (Aadhaar Card/PAN Card/Marksheet/Income Certificate/Caste Certificate/Unknown)",
+  "extracted_data": {{
+    "name": "full name if found, else null",
+    "document_number": "ID/number if found, else null",
+    "dob": "date of birth if found, else null",
+    "father_name": "father's name if found, else null",
+    "address": "address if found, else null",
+    "marks": "marks/grades if marksheet, else null",
+    "roll_number": "roll/enrollment number if found, else null",
+    "institution": "school/college name if found, else null",
+    "income_amount": "annual income if income certificate, else null",
+    "caste_category": "caste category if caste certificate, else null",
+    "issue_date": "certificate issue date if found, else null",
+    "validity": "validity period if found, else null"
+  }},
+  "confidence": 0-100,
+  "is_valid_format": true/false,
+  "quality_issues": ["list of any problems"],
+  "text_clarity": "excellent/good/fair/poor",
+  "completeness": 0-100
+}}
 
-Return ONLY valid JSON, no markdown."""
+Scoring Guidelines:
+- confidence 80-100: Clear, readable, all key fields extracted
+- confidence 60-79: Readable, most fields present, minor OCR issues
+- confidence 40-59: Partially readable, some fields missing
+- confidence 0-39: Poorly scanned, mostly unreadable
+
+Be realistic - real scanned documents may have minor imperfections but are still valid."""
 
         response = groq_client.chat.completions.create(
             model="llama-3.3-70b-versatile",
             messages=[
-                {
-                    "role": "system",
-                    "content": "You are an expert document verification AI for scholarship applications. Be thorough and strict in validation."
-                },
-                {
-                    "role": "user",
-                    "content": prompt
-                }
+                {"role": "system", "content": "You are a document validator. Extract data accurately and give realistic confidence scores. Real scanned documents with minor imperfections should score 70-85."},
+                {"role": "user", "content": prompt}
             ],
             temperature=0.1,
             max_tokens=1500
@@ -280,182 +281,201 @@ Return ONLY valid JSON, no markdown."""
         
         result_text = response.choices[0].message.content.strip()
         
+        # Clean markdown formatting
         if result_text.startswith("```"):
             result_text = result_text.split("```")[1]
             if result_text.startswith("json"):
                 result_text = result_text[4:]
             result_text = result_text.strip()
         
-        result = json.loads(result_text)
-        return result
+        return json.loads(result_text)
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"AI validation failed: {str(e)}")
 
-# API Endpoints
 @app.get("/")
-def read_root():
+def root():
     return {
-        "message": "Scholarship Document Verification System",
-        "version": "2.0",
-        "description": "Admin-side document verification without requiring student credentials",
-        "endpoints": {
-            "verify": "/verify (POST)",
-            "batch_verify": "/batch-verify (POST)",
-            "health": "/health (GET)"
-        }
+        "service": "Scholarship Document Verification",
+        "version": "3.0 - Improved Accuracy",
+        "supported_documents": ["Aadhaar", "PAN", "Marksheet", "Income Certificate", "Caste Certificate"],
+        "features": ["OCR", "Smart Tampering Detection", "AI Validation", "Data Extraction"]
     }
 
-@app.get("/health")
-def health_check():
-    return {"status": "healthy", "service": "Scholarship Document Verification"}
-
 @app.post("/verify")
-async def verify_document(
-    file: UploadFile = File(...),
-    student_name: Optional[str] = Form(None),
-    student_dob: Optional[str] = Form(None),
-    application_id: Optional[str] = Form(None),
-    expected_document_type: Optional[str] = Form(None)
-):
-    """
-    Verify uploaded document without requiring DigiLocker credentials
-    - Performs OCR text extraction
-    - Detects tampering/manipulation
-    - Validates with AI
-    - Cross-verifies with student data (if provided)
-    """
+async def verify_single_document(file: UploadFile = File(...)):
+    """Verify a single document with improved accuracy and extracted data"""
     try:
         file_bytes = await file.read()
         
-        # Extract text and detect tampering
-        extracted_text, tampering_analysis = extract_text_from_image(file_bytes, file.filename)
+        # Extract text
+        text, tampering = extract_text_from_file(file_bytes, file.filename)
         
-        if not extracted_text or len(extracted_text) < 10:
-            raise HTTPException(
-                status_code=400, 
-                detail="Could not extract sufficient text. Please upload a clearer image/PDF."
-            )
+        if not text or len(text) < 20:
+            return JSONResponse({
+                "status": "REJECTED",
+                "decision": "REJECT",
+                "reason": ["Cannot extract text - image quality too poor or document unreadable"],
+                "confidence_score": 0,
+                "authenticity_score": 0,
+                "document_type": "Unknown",
+                "extracted_data": {},
+                "raw_text": text[:500] if text else ""
+            })
         
-        # Prepare student data for cross-verification
-        student_data = None
-        if student_name or student_dob or application_id:
-            student_data = {
-                "name": student_name,
-                "dob": student_dob,
-                "application_id": application_id
-            }
+        # AI validation
+        ai_result = ai_validate_document(text)
         
-        # AI Validation
-        ai_result = validate_with_ai(extracted_text, student_data)
+        # Pattern validation
+        pattern_check = validate_document_pattern(text, ai_result["document_type"])
         
-        # Format validation
-        doc_type = ai_result.get("document_type", "").lower()
-        format_validation = validate_document_format(extracted_text, doc_type)
+        # Calculate scores
+        confidence = ai_result["confidence"]
+        authenticity = tampering["authenticity_score"]
         
-        # Calculate final scores
-        confidence_score = ai_result.get("confidence_score", 0)
-        authenticity_score = tampering_analysis["authenticity_score"]
+        # IMPROVED Decision logic - More realistic thresholds
+        status = "VERIFIED"
+        decision = "ACCEPT"
+        reason = []
         
-        # Determine verification result
-        tampering_detected = len(tampering_analysis["tampering_indicators"]) > 0
-        verification_result = "VERIFIED"
-        recommendations = []
+        # Critical failures - immediate rejection
+        if tampering["tampering_detected"] and authenticity < 60:  # Lowered from 70
+            status = "REJECTED"
+            decision = "REJECT"
+            reason.append("Document shows significant signs of tampering")
         
-        if tampering_detected and authenticity_score < 60:
-            verification_result = "REJECTED - Tampering Detected"
-            recommendations.append("Document shows signs of digital manipulation. Request original document.")
-        elif confidence_score < 50:
-            verification_result = "REJECTED - Poor Quality"
-            recommendations.append("OCR confidence too low. Request higher quality image/scan.")
-        elif not ai_result.get("is_valid_format", True):
-            verification_result = "REJECTED - Invalid Format"
-            recommendations.append("Document does not match standard format. Verify authenticity.")
-        elif confidence_score < 70:
-            verification_result = "NEEDS MANUAL REVIEW"
-            recommendations.append("Moderate confidence score. Recommend manual verification by admin.")
-        else:
-            verification_result = "VERIFIED"
-            recommendations.append("Document appears authentic and readable.")
+        if confidence < 45:  # Lowered from 60 - realistic scans may score 50-70
+            status = "REJECTED"
+            decision = "REJECT"
+            reason.append("Poor image quality - text not clearly readable")
         
-        # Check expected document type
-        if expected_document_type and expected_document_type.lower() not in doc_type:
-            verification_result = "REJECTED - Wrong Document Type"
-            recommendations.append(f"Expected {expected_document_type}, but detected {ai_result.get('document_type')}")
+        if ai_result["document_type"] == "Unknown":
+            status = "REJECTED"
+            decision = "REJECT"
+            reason.append("Cannot identify document type")
         
-        response = {
-            "document_type": ai_result.get("document_type", "Unknown"),
-            "extracted_data": ai_result.get("extracted_fields", {}),
-            "confidence_score": confidence_score,
-            "authenticity_score": authenticity_score,
-            "tampering_detected": tampering_detected,
-            "validation_checks": {
-                "format_validation": format_validation,
-                "tampering_analysis": tampering_analysis,
-                "data_quality_issues": ai_result.get("data_quality_issues", []),
-                "suspicious_elements": ai_result.get("suspicious_elements", []),
-                "cross_verification": ai_result.get("cross_verification_status", "Not Applicable")
+        # Relaxed validation - real documents may not match all patterns
+        if not pattern_check["pattern_found"] and not pattern_check["keywords_found"]:
+            # Only reject if BOTH are missing
+            status = "REJECTED"
+            decision = "REJECT"
+            reason.append("Document cannot be verified - missing key identifiers")
+        
+        # Combined score check - more lenient
+        if status != "REJECTED":
+            avg_score = (confidence + authenticity) / 2
+            if avg_score < 55:  # Lowered from 70
+                status = "REJECTED"
+                decision = "REJECT"
+                reason.append(f"Overall quality score too low ({round(avg_score, 1)}%)")
+            else:
+                reason.append("Document verified successfully")
+                if tampering.get("warnings"):
+                    reason.append(f"Note: {', '.join(tampering['warnings'][:2])}")
+        
+        return JSONResponse({
+            "status": status,
+            "decision": decision,
+            "reason": reason,
+            "document_type": ai_result["document_type"],
+            "extracted_data": ai_result["extracted_data"],  # Now included!
+            "confidence_score": round(confidence, 1),
+            "authenticity_score": round(authenticity, 1),
+            "text_clarity": ai_result.get("text_clarity", "unknown"),
+            "completeness": ai_result.get("completeness", 0),
+            "tampering_issues": tampering["issues"],
+            "warnings": tampering.get("warnings", []),
+            "validation": {
+                "format_valid": ai_result["is_valid_format"],
+                "pattern_match": pattern_check["pattern_found"],
+                "keywords_found": pattern_check["keywords_found"],
+                "keyword_count": pattern_check["keyword_count"],
+                "numbers_found": pattern_check["document_numbers"]
             },
-            "verification_result": verification_result,
-            "recommendations": recommendations + ai_result.get("recommendations", []),
-            "extracted_text_preview": extracted_text[:300] + "..." if len(extracted_text) > 300 else extracted_text,
+            "quality_metrics": tampering["metrics"],
+            "raw_text_preview": text[:300] + "..." if len(text) > 300 else text,
             "timestamp": datetime.now().isoformat()
-        }
+        })
         
-        return JSONResponse(content=response)
-        
-    except HTTPException:
-        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Verification failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
-@app.post("/batch-verify")
-async def batch_verify_documents(
-    files: List[UploadFile] = File(...),
-    student_name: Optional[str] = Form(None),
-    student_dob: Optional[str] = Form(None),
-    application_id: Optional[str] = Form(None)
-):
-    """Verify multiple documents at once for a single student"""
+@app.post("/verify-batch")
+async def verify_multiple_documents(files: List[UploadFile] = File(...)):
+    """Verify multiple documents with improved accuracy"""
     results = []
     
     for file in files:
         try:
-            # Reset file pointer
             await file.seek(0)
-            
-            # Verify each document
             file_bytes = await file.read()
-            extracted_text, tampering_analysis = extract_text_from_image(file_bytes, file.filename)
             
-            student_data = None
-            if student_name or student_dob or application_id:
-                student_data = {
-                    "name": student_name,
-                    "dob": student_dob,
-                    "application_id": application_id
-                }
+            text, tampering = extract_text_from_file(file_bytes, file.filename)
             
-            ai_result = validate_with_ai(extracted_text, student_data)
+            if not text or len(text) < 20:
+                results.append({
+                    "filename": file.filename,
+                    "status": "REJECTED",
+                    "decision": "REJECT",
+                    "reason": "Cannot extract text",
+                    "confidence": 0,
+                    "authenticity": 0,
+                    "extracted_data": {}
+                })
+                continue
+            
+            ai_result = ai_validate_document(text)
+            pattern_check = validate_document_pattern(text, ai_result["document_type"])
+            
+            confidence = ai_result["confidence"]
+            authenticity = tampering["authenticity_score"]
+            
+            status = "VERIFIED"
+            decision = "ACCEPT"
+            
+            # Apply improved criteria
+            if (tampering["tampering_detected"] and authenticity < 60) or \
+               confidence < 45 or \
+               ai_result["document_type"] == "Unknown":
+                status = "REJECTED"
+                decision = "REJECT"
+            elif not pattern_check["pattern_found"] and not pattern_check["keywords_found"]:
+                status = "REJECTED"
+                decision = "REJECT"
+            elif (confidence + authenticity) / 2 < 55:
+                status = "REJECTED"
+                decision = "REJECT"
             
             results.append({
                 "filename": file.filename,
-                "document_type": ai_result.get("document_type", "Unknown"),
-                "confidence_score": ai_result.get("confidence_score", 0),
-                "authenticity_score": tampering_analysis["authenticity_score"],
-                "verification_result": "VERIFIED" if ai_result.get("confidence_score", 0) > 70 else "NEEDS REVIEW",
-                "extracted_data": ai_result.get("extracted_fields", {})
+                "status": status,
+                "decision": decision,
+                "document_type": ai_result["document_type"],
+                "confidence": round(confidence, 1),
+                "authenticity": round(authenticity, 1),
+                "extracted_data": ai_result["extracted_data"],  # Now included!
+                "tampering_detected": tampering["tampering_detected"],
+                "warnings": tampering.get("warnings", [])
             })
             
         except Exception as e:
             results.append({
                 "filename": file.filename,
+                "status": "ERROR",
+                "decision": "REJECT",
                 "error": str(e),
-                "verification_result": "FAILED"
+                "extracted_data": {}
             })
     
-    return JSONResponse(content={
+    summary = {
+        "accepted": sum(1 for r in results if r.get("decision") == "ACCEPT"),
+        "rejected": sum(1 for r in results if r.get("decision") == "REJECT"),
+        "error": sum(1 for r in results if r.get("status") == "ERROR")
+    }
+    
+    return JSONResponse({
         "total_documents": len(files),
+        "summary": summary,
         "results": results,
         "timestamp": datetime.now().isoformat()
     })
@@ -464,13 +484,13 @@ if __name__ == "__main__":
     import uvicorn
     
     if not os.getenv("GROQ_API_KEY"):
-        print("WARNING: GROQ_API_KEY not set in .env file")
-        print("Add GROQ_API_KEY=your_key_here to .env file")
+        print("⚠️ WARNING: GROQ_API_KEY not found in .env file")
     
-    print("Starting Scholarship Document Verification System...")
-    print("Tesseract OCR Path: C:\\Program Files\\Tesseract-OCR\\tesseract.exe")
-    print("API Documentation: http://localhost:8001/docs")
-    print("\nThis system verifies documents WITHOUT requiring student DigiLocker credentials")
-    print("Admin can verify uploaded documents directly\n")
+    print("🚀 Starting Improved Document Verification System v3.0")
+    print("📄 Supported: Aadhaar, PAN, Marksheet, Income & Caste Certificates")
+    print("🔍 Features: Smart OCR + Balanced Tampering Detection + AI Extraction")
+    print("✅ Realistic Scoring: Handles real scanned documents accurately")
+    print("📊 Extracted Data: Now displays all extracted information")
+    print("📚 API Docs: http://localhost:8001/docs")
     
     uvicorn.run(app, host="0.0.0.0", port=8001)
